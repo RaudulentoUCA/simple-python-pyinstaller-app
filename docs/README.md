@@ -1,4 +1,7 @@
+# Como realizar el proceso de despliegue
+David te toca máquina
 
+# Explicado de los ejercicios
 ## El primer archivo main:
 ```tf
 module "dockerindocker" {
