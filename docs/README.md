@@ -77,11 +77,11 @@ resource "docker_image" "jenkins_image" {
 }
 ```
 
-En la última parte se crea el contenedor con la imagen hecha anteriormente, se utiliza una instrucción para que la creación tenga que esperar a que se complete la imagen, se le da un nombre, y se establece que se utilizarán los puertos 8080, tanto en la máquina host como en el contendor.
+En la última parte se crea el contenedor con la imagen hecha anteriormente, se utiliza una instrucción de dependencia para que la creación tenga que esperar a que se complete la imagen, se le da un nombre, y se establece que se utilizarán los puertos 8080, tanto en la máquina host como en el contendor.
 ```tf
 resource "docker_container" "jenkins_container" {
-  depends_on = [docker_image.jenkins_image]
-  name  = "jenkins_container"
+  depends_on = [docker_image.jenkins_image]    # Dependencia
+  name  = "jenkins_container"                  # Nombre del contenedor
   image = docker_image.jenkins_image.name
 
   ports {
@@ -89,4 +89,23 @@ resource "docker_container" "jenkins_container" {
     external = 8080
   }
 }
+```
+
+
+## Archivo Dockerfile
+El archivo dockerfile utilizado es el mismo que se nos proporciona en el tutorial ofrecido por el enunciado de la práctica:
+https://www.jenkins.io/doc/tutorials/build-a-python-app-with-pyinstaller/
+```Dockerfile
+FROM jenkins/jenkins:2.426.1-jdk17
+USER root
+RUN apt-get update && apt-get install -y lsb-release
+RUN curl -fsSLo /usr/share/keyrings/docker-archive-keyring.asc \
+  https://download.docker.com/linux/debian/gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) \
+  signed-by=/usr/share/keyrings/docker-archive-keyring.asc] \
+  https://download.docker.com/linux/debian \
+  $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+RUN apt-get update && apt-get install -y docker-ce-cli
+USER jenkins
+RUN jenkins-plugin-cli --plugins "blueocean:1.27.9 docker-workflow:572.v950f58993843"
 ```
