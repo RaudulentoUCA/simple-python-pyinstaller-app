@@ -8,7 +8,10 @@ Este es el primer paso para realizar el despliegue, tras instalar Terraform, si 
 Tras inicializar el proyecto, el paso siguiente es este, donde realizamos ***terraform apply***, lo cual, aplicará los archivos de configuración del directorio actual y nos mostrará la salida de aquello que se ha creado.
 
 ## Acceso a Jenkins
+Tras esto, podemos acceder a Jenkins, abrimos el navegador y nos dirigimos a ***http://localhost:8080***, y esperamos a que aparezca la págine **Unlock Jenkins**, lo cual, nos pedirá una contraseña de administrador, a la que podremos acceder, introduciendo en la línea de comandos: ***docker logs jenkins-blueocean***, entre dos bloques de astéricos, se encontrará nuestra contraseña de administrador, la introducimos en la página de Jenkins y procedemos a crear nuestro usuario propio.
 
+## Creación del pipeline
+Una vez tenemos nuestro usuario, será necesario realizar un *Fork*, tal como en el que nos encontramos, del repositorio [simple-python-pyinstaller-app](https://github.com/jenkins-docs/simple-python-pyinstaller-app). Tras ello, accedemos a Jenkins, clickamos sobre **create new jobs**, justo debajo de **Welcome to Jenkins**, introducimos el nombre del proyecto Pipeline, y seleccionamos sobre Pipeline propiamente. Una vez dentro, nos dirigimos hacia **Pipeline section**, en el campo **Definition**, escogemos **Pipeline script from SCM**, escogemos **Git** y especificamos el directorio de nuestro repositorio del Fork. Tras esto, procedemos a crear el archivo ***Jenkinsfile***, que será donde definamos nuestro Pipeline. Por último, nos quedaría subirlo al repositorio y arrancar el programa.
 
 # Explicación de los ejercicios
 ## El primer archivo main:
