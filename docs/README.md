@@ -14,14 +14,14 @@ Tras esto, podemos acceder a Jenkins, abrimos el navegador y nos dirigimos a ***
 Una vez tenemos nuestro usuario, será necesario realizar un *Fork*, tal como en el que nos encontramos, del repositorio [simple-python-pyinstaller-app](https://github.com/jenkins-docs/simple-python-pyinstaller-app). Tras ello, accedemos a Jenkins, clickamos sobre **create new jobs**, justo debajo de **Welcome to Jenkins**, introducimos el nombre del proyecto Pipeline, y seleccionamos sobre Pipeline propiamente. Una vez dentro, nos dirigimos hacia **Pipeline section**, en el campo **Definition**, escogemos **Pipeline script from SCM**, escogemos **Git** y especificamos el directorio de nuestro repositorio del Fork. Tras esto, procedemos a crear el archivo ***Jenkinsfile***, que será donde definamos nuestro Pipeline. Por último, nos quedaría subirlo al repositorio y arrancar el programa.
 
 # Explicación de los ejercicios
-## El primer archivo main:
+## Archivo principal, main.tf
 ```tf
 module "dockerindocker" {
   source = "./modules/dockerindocker" 
 }
 
 module "jenkins" {
-  source = "./modules/jenkins"            //llamada al archivo que crea el contenedor de jenkins
+  source = "./modules/jenkins"
 }
 
 ```
