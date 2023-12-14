@@ -1,7 +1,16 @@
 # Como realizar el proceso de despliegue
-David te toca máquina
+El despliegue tal como se indica en la práctica ha de realizarse mediante Terraform, cuyo proceso, es el siguiente:
 
-# Explicado de los ejercicios
+## Inicialización del proyecto Terraform
+Este es el primer paso para realizar el despliegue, tras instalar Terraform, si fuera necesario, nos vamos al directorio de trabajo, en este caso, donde se encuentre el archivo ***main.tf***, y aplicamos el siguiente comando, ***terraform init***, el cual va a identificar y descargar las dependencias, inicializa el estado y valida la configuración.
+
+## Creación de la infraestructura
+Tras inicializar el proyecto, el paso siguiente es este, donde realizamos ***terraform apply***, lo cual, aplicará los archivos de configuración del directorio actual y nos mostrará la salida de aquello que se ha creado.
+
+## Acceso a Jenkins
+
+
+# Explicación de los ejercicios
 ## El primer archivo main:
 ```tf
 module "dockerindocker" {
