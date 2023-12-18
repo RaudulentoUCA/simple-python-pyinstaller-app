@@ -96,7 +96,7 @@ resource "docker_container" "jenkins_container" {
 }
 ```
 
-La primera parte se utiliza para especificar que se utilizará terraform, y los proveedores que se utilizarán. Además de especificar los volúmenes que se utilizarán.
+En la primera parte, definimos la configuración de Terraform, especificando el proveedor de Docker que se utilizará y su versión, que será igual o superior a 3.0.2 pero inferior a 4.0.0. Tras esto, definimos los volúmenes a utilizar y el último bloque de esta parte, es necesario para los que utilizen Windows, como es nuestro caso.
 ```tf
 terraform {
   required_providers {
@@ -170,7 +170,148 @@ resource "docker_container" "jenkins_container" {
 }
 ```
 
+## El archivo .tf de la carpeta modules/dockerindocker/:
+```tf
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0.2"
+    }
+  }
+}
 
+provider "docker" {
+  host = "npipe:////./pipe/docker_engine"
+}
+
+resource "docker_network" "jenkins_network" {
+  name = "jenkins"
+}
+
+resource "docker_volume" "jenkins-docker-certs" {
+  name = "jenkins-docker-certs"
+}
+
+resource "docker_volume" "jenkins-data" {
+  name = "jenkins-data"
+}
+
+resource "docker_container" "jenkins_docker" {
+  name  = "jenkins-docker"
+  image = "docker:dind"
+  rm    = true
+  privileged = true
+
+  env = [
+    "DOCKER_TLS_CERTDIR=/certs",
+  ]
+
+  volumes {
+    volume_name    = docker_volume.jenkins-docker-certs.name
+    container_path = "/certs/client"
+  }
+
+  volumes {
+    volume_name    = docker_volume.jenkins-data.name
+    container_path = "/var/jenkins_home"
+  }
+
+  ports {
+    internal = 3000
+    external = 3000
+  }
+
+  ports {
+    internal = 5000
+    external = 5000
+  }
+
+  ports {
+    internal = 2376
+    external = 2376
+  }
+
+  networks_advanced {
+    name = docker_network.jenkins_network.name
+    aliases = ["docker"]
+  }
+}
+```
+
+La primera parte, al igual que en el archivo anterior, definimos la configuración de Terraform, especificando el proveedor de Docker que se utilizará y su versión.
+```tf
+terraform {
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0.2"
+    }
+  }
+}
+
+provider "docker" {
+  host = "npipe:////./pipe/docker_engine"
+}
+```
+Tras esto, definimos la red necesaria y al igual que otra vez el archivo anterior, definimos los volúmenes a utilizar.
+```tf
+resource "docker_network" "jenkins_network" {
+  name = "jenkins"
+}
+
+resource "docker_volume" "jenkins-docker-certs" {
+  name = "jenkins-docker-certs"
+}
+
+resource "docker_volume" "jenkins-data" {
+  name = "jenkins-data"
+}
+```
+
+Por último, definimos el contenedor Docker, el nombre que tendrá, la imagen que utilizará, se configura para eliminar el contenedor después de detenerlo y que se ejecute en modo privilegiado. Tras esto, configuramos las variables de entorno, vinculamos los volúmenes a rutas específicas dentro del contenedor y abrimos los puertos indicados, cerrando conectando el contenedor con la red indicada y asignándole el alias "docker" en la red.
+```tf
+resource "docker_container" "jenkins_docker" {
+  name  = "jenkins-docker"
+  image = "docker:dind"
+  rm    = true
+  privileged = true
+
+  env = [
+    "DOCKER_TLS_CERTDIR=/certs",
+  ]
+
+  volumes {
+    volume_name    = docker_volume.jenkins-docker-certs.name
+    container_path = "/certs/client"
+  }
+
+  volumes {
+    volume_name    = docker_volume.jenkins-data.name
+    container_path = "/var/jenkins_home"
+  }
+
+  ports {
+    internal = 3000
+    external = 3000
+  }
+
+  ports {
+    internal = 5000
+    external = 5000
+  }
+
+  ports {
+    internal = 2376
+    external = 2376
+  }
+
+  networks_advanced {
+    name = docker_network.jenkins_network.name
+    aliases = ["docker"]
+  }
+}
+```
 ## Archivo Dockerfile
 El archivo dockerfile utilizado es el mismo que se nos proporciona en el tutorial ofrecido por el enunciado de la práctica:
 https://www.jenkins.io/doc/tutorials/build-a-python-app-with-pyinstaller/
