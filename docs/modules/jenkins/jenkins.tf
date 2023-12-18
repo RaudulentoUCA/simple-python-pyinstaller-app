@@ -36,7 +36,10 @@ resource "docker_container" "jenkins_container" {
   restart      = "on-failure"
 
   env = [
-    "DOCKER_TLS_CERTDIR=/certs",
+    "DOCKER_HOST=tcp://docker:2376",
+    "DOCKER_CERT_PATH=/certs/client",
+    "DOCKER_TLS_VERIFY=1",
+    "JAVA_OPTS=-Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true",
   ]
 
   volumes {
@@ -53,12 +56,6 @@ resource "docker_container" "jenkins_container" {
     volume_name     = "host-home-volume"
     container_path  = "/home"
   }
-
-  command = [
-    "bash",
-    "-c",
-    "DOCKER_HOST=tcp://docker:2376 DOCKER_CERT_PATH=/certs/client DOCKER_TLS_VERIFY=1 JAVA_OPTS=-Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true /usr/local/bin/jenkins.sh"
-  ]
 
   ports {
     internal = 8080
