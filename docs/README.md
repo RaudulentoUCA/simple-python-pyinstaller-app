@@ -33,10 +33,18 @@ Este archivo llama al resto de archivos de configuración que están separados p
 terraform {
   required_providers {
     docker = {
-      source = "kreuzwerker/docker"
+      source  = "kreuzwerker/docker"
       version = "~> 3.0.2"
     }
   }
+}
+
+resource "docker_volume" "jenkins-docker-certs" {
+  name = "jenkins-docker-certs"
+}
+
+resource "docker_volume" "jenkins-data" {
+  name = "jenkins-data"
 }
 
 provider "docker" {
@@ -53,9 +61,33 @@ resource "docker_image" "jenkins_image" {
 }
 
 resource "docker_container" "jenkins_container" {
-  depends_on = [docker_image.jenkins_image]
-  name  = "jenkins_container"
-  image = docker_image.jenkins_image.name
+  depends_on   = [docker_image.jenkins_image]
+  name         = "jenkins_container"
+  image        = docker_image.jenkins_image.name
+  network_mode = "jenkins"
+  restart      = "on-failure"
+
+  env = [
+    "DOCKER_HOST=tcp://docker:2376",
+    "DOCKER_CERT_PATH=/certs/client",
+    "DOCKER_TLS_VERIFY=1",
+    "JAVA_OPTS=-Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true",
+  ]
+
+  volumes {
+    volume_name = docker_volume.jenkins-docker-certs.name
+    container_path = "/certs/client"
+  }
+
+  volumes {
+    volume_name = docker_volume.jenkins-data.name
+    container_path = "/var/jenkins_home"
+  }
+
+  volumes {
+    volume_name     = "host-home-volume"
+    container_path  = "/home"
+  }
 
   ports {
     internal = 8080
@@ -64,7 +96,7 @@ resource "docker_container" "jenkins_container" {
 }
 ```
 
-La primera parte se utiliza para especificar que se utilizará terraform, y los proveedores que se utilizarán.
+La primera parte se utiliza para especificar que se utilizará terraform, y los proveedores que se utilizarán. Además de especificar los volúmenes que se utilizarán.
 ```tf
 terraform {
   required_providers {
@@ -73,6 +105,14 @@ terraform {
       version = "~> 3.0.2"              # Versión del proveedor de docker
     }
   }
+}
+
+resource "docker_volume" "jenkins-docker-certs" {
+  name = "jenkins-docker-certs"
+}
+
+resource "docker_volume" "jenkins-data" {
+  name = "jenkins-data"
 }
 
 provider "docker" {                            # Esta parte es necesaria solo para windows (copiada directamente de la práctica de terraform)
@@ -92,12 +132,36 @@ resource "docker_image" "jenkins_image" {
 }
 ```
 
-En la última parte se crea el contenedor con la imagen hecha anteriormente, se utiliza una instrucción de dependencia para que la creación tenga que esperar a que se complete la imagen, se le da un nombre, y se establece que se utilizarán los puertos 8080, tanto en la máquina host como en el contendor.
+En la última parte se crea el contenedor con la imagen hecha anteriormente, se utiliza una instrucción de dependencia para que la creación tenga que esperar a que se complete la imagen, se le da un nombre, se especifican los volúmenes con sus rutas a utilizar y se establece que se utilizarán los puertos 8080, tanto en la máquina host como en el contendor.
 ```tf
 resource "docker_container" "jenkins_container" {
-  depends_on = [docker_image.jenkins_image]    # Dependencia
-  name  = "jenkins_container"                  # Nombre del contenedor
-  image = docker_image.jenkins_image.name
+  depends_on   = [docker_image.jenkins_image]    # dependencia de la imagen
+  name         = "jenkins_container"
+  image        = docker_image.jenkins_image.name
+  network_mode = "jenkins"
+  restart      = "on-failure"                     # se vuelve a encender si no se apaga de forma manual
+
+  env = [
+    "DOCKER_HOST=tcp://docker:2376",              # se comunica con el dockerindocker para obtener información
+    "DOCKER_CERT_PATH=/certs/client",
+    "DOCKER_TLS_VERIFY=1",
+    "JAVA_OPTS=-Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true",
+  ]
+
+  volumes {
+    volume_name = docker_volume.jenkins-docker-certs.name
+    container_path = "/certs/client"
+  }
+
+  volumes {
+    volume_name = docker_volume.jenkins-data.name
+    container_path = "/var/jenkins_home"
+  }
+
+  volumes {
+    volume_name     = "host-home-volume"
+    container_path  = "/home"
+  }
 
   ports {
     internal = 8080
